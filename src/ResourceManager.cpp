@@ -23,6 +23,8 @@ void ResourceManager::loadSprite(sf::Texture& texture, sf::Sprite& sprite, const
         throw std::runtime_error(std::string("Cannot load file ") + relativePath);
 
     sprite.setTexture(texture);
+    sprite.setScale(m_spriteSizeInPixels / sprite.getLocalBounds().width,
+                    m_spriteSizeInPixels / sprite.getLocalBounds().height);
 }
 
 void ResourceManager::loadSprites()
@@ -38,13 +40,13 @@ void ResourceManager::loadSprites()
 
     for (auto tile = Tile::ExpectedColorOne; tile < Tile::ExpectedColorEnd; tile++)
     {
-        auto fileName = directoryName + "expected_ball_" + std::to_string(static_cast <int>(tile)) + ".png";
+        auto fileName = directoryName + "expected_ball_" + std::to_string(static_cast <int>(tile - Tile::ColorEnd)) + ".png";
         loadSprite(m_ballTextures[tile], m_ballSprites[tile], fileName);
     }
 
     for (auto tile = Tile::SelectedColorOne; tile < Tile::SelectedColorEnd; tile++)
     {
-        auto fileName = directoryName + "selected_ball_" + std::to_string(static_cast <int>(tile)) + ".png";
+        auto fileName = directoryName + "selected_ball_" + std::to_string(static_cast <int>(tile - Tile::ExpectedColorEnd)) + ".png";
         loadSprite(m_ballTextures[tile], m_ballSprites[tile], fileName);
     }
 }
@@ -57,4 +59,9 @@ sf::Sprite ResourceManager::getBallSprite(const Tile tile)
 sf::Sprite ResourceManager::getCellSprite()
 {
     return m_cellSprite;
+}
+
+int ResourceManager::getSpriteSize()
+{
+    return m_spriteSizeInPixels;
 }

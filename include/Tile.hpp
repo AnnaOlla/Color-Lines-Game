@@ -8,7 +8,6 @@ enum class Tile
 {
     Empty,
 
-    ColorStart,
     ColorOne,
     ColorTwo,
     ColorThree,
@@ -19,7 +18,6 @@ enum class Tile
     ColorEight,
     ColorEnd,
 
-    ExpectedColorStart,
     ExpectedColorOne,
     ExpectedColorTwo,
     ExpectedColorThree,
@@ -30,7 +28,6 @@ enum class Tile
     ExpectedColorEight,
     ExpectedColorEnd,
 
-    SelectedColorStart,
     SelectedColorOne,
     SelectedColorTwo,
     SelectedColorThree,
@@ -44,9 +41,10 @@ enum class Tile
     Count
 };
 
-inline Tile operator++(Tile x, int)
+inline Tile operator++(Tile& x, int)
 {
-    return static_cast <Tile>(static_cast <int>(x) + 1);
+    x = static_cast <Tile>(static_cast <int>(x) + 1);
+    return x;
 }
 
 inline Tile operator+(Tile x, Tile y)

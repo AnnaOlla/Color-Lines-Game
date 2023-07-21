@@ -12,7 +12,7 @@ RandomNumberGenerator::~RandomNumberGenerator()
 
 int RandomNumberGenerator::getInteger(const int inclusiveMinValue, const int exclusiveMaxValue)
 {
-    std::uniform_int_distribution <int> distribution(inclusiveMinValue, exclusiveMaxValue + 1);
+    std::uniform_int_distribution <int> distribution(inclusiveMinValue, exclusiveMaxValue - 1);
     return distribution(m_engine);
 }
 

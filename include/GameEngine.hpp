@@ -3,6 +3,7 @@
 
 #include "Tile.hpp"
 #include "RandomNumberGenerator.hpp"
+#include "GameState.hpp"
 
 #include <vector>
 #include <algorithm>
@@ -13,15 +14,19 @@ class GameEngine
         GameEngine();
         virtual ~GameEngine();
 
-        bool selectTile(const int, const int);
-        bool deselectTile();
-        bool moveToTile(const int, const int);
-        void addExpectedBalls(const int);
-        void transformExpectedBalls();
+        void startNewGame(const int, const int);
+        void processMove(const int, const int);
+
+        const std::vector <std::vector <Tile>>& getTileMap() const;
+        int getScore() const;
+
+        void increaseTimer();
+        int getTimeInSeconds() const;
 
     private:
         std::vector <std::vector <Tile>> m_tileMap;
         std::pair <int, int> m_selection;
+        GameState m_state;
 
         bool m_isAdditionalMoveAvailable;
         int m_timeElapsedInSeconds;
@@ -32,10 +37,19 @@ class GameEngine
 
         RandomNumberGenerator random;
 
+        const int m_newBallCountOnMove = 3;
+
+        void selectTile(const int, const int);
+        void deselectTile();
+        void moveSelectedToTile(const int, const int);
+
+        void addExpectedBalls(const int);
+        void transformExpectedBalls();
+
         bool isTilePassable(const int, const int) const;
         bool findPath(const int, const int, const int, const int, std::vector <std::pair <int, int>>&) const;
 
-        void deleteStreaks(const int, const int);
+        void deleteStreaks(const int, const int, bool);
 
         bool isHorizontalStreak(const int, const int) const;
         int deleteAdjacentHorizontalStreak(const int, const int);
@@ -49,7 +63,7 @@ class GameEngine
         bool isAntiDiagonalStreak(const int, const int) const;
         int deleteAdjacentAntiDiagonalStreak(const int, const int);
 
-        void addScores(const int);
+        void increaseScore(const int);
 };
 
 #endif // GAMEENGINE_HPP

@@ -15,12 +15,15 @@ class ResourceManager
         static void loadSprites();
         static sf::Sprite getBallSprite(const Tile);
         static sf::Sprite getCellSprite();
+        static int getSpriteSize();
 
     private:
         ResourceManager();
         ~ResourceManager();
 
         static void loadSprite(sf::Texture&, sf::Sprite&, const std::string&);
+
+        static const int m_spriteSizeInPixels = 64;
 
         static sf::Texture m_cellTexture;
         static sf::Sprite m_cellSprite;
