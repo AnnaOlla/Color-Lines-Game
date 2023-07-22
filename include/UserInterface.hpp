@@ -3,6 +3,7 @@
 
 #include "ResourceManager.hpp"
 #include "GameEngine.hpp"
+
 #include <SFML/Graphics.hpp>
 
 class UserInterface
@@ -19,8 +20,11 @@ class UserInterface
         GameEngine& m_game;
 
         sf::RenderWindow m_window;
-        sf::RectangleShape m_infoPanel;
 
+        sf::Clock m_clock;
+        const float m_maxClockDelayInSeconds = 1.0f;
+
+        sf::RectangleShape m_infoPanel;
         sf::Color m_textColor;
         sf::Font m_font;
         sf::Text m_scoreText;

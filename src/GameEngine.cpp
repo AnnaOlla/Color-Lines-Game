@@ -36,9 +36,18 @@ void GameEngine::processMove(const int row, const int column)
 
     case GameState::SecondPick:
         if (m_selection == std::make_pair(row, column))
+        {
             deselectTile();
-        else
+        }
+        else if (isTilePassable(row, column))
+        {
             moveSelectedToTile(row, column);
+        }
+        else
+        {
+            deselectTile();
+            selectTile(row, column);
+        }
         break;
 
     default:
@@ -48,9 +57,6 @@ void GameEngine::processMove(const int row, const int column)
 
 void GameEngine::selectTile(const int row, const int column)
 {
-    if (m_state != GameState::FirstPick)
-        return;
-
     if (m_tileMap[row][column] < Tile::ColorOne || m_tileMap[row][column] >= Tile::ColorEnd)
         return;
 
@@ -61,9 +67,6 @@ void GameEngine::selectTile(const int row, const int column)
 
 void GameEngine::deselectTile()
 {
-    if (m_state != GameState::SecondPick)
-        return;
-
     auto row = m_selection.first;
     auto column = m_selection.second;
 
@@ -80,8 +83,7 @@ void GameEngine::moveSelectedToTile(const int rowNew, const int columnNew)
     auto rowOld = m_selection.first;
     auto columnOld = m_selection.second;
 
-    std::vector <std::pair <int, int>> path;
-    if (!findPath(m_selection.first, m_selection.second, rowNew, columnNew, path))
+    if (!pathExists(m_selection.first, m_selection.second, rowNew, columnNew))
         return;
 
     std::swap(m_tileMap[rowNew][columnNew], m_tileMap[rowOld][columnOld]);
@@ -151,36 +153,44 @@ bool GameEngine::isTilePassable(const int row, const int column) const
     return (t == Tile::Empty || (t >= Tile::ExpectedColorOne && t < Tile::ExpectedColorEnd));
 }
 
-bool GameEngine::findPath(const int currentRow,
-                          const int currentColumn,
-                          const int destinationRow,
-                          const int destinationColumn,
-                          std::vector <std::pair <int, int>>& path) const
+bool GameEngine::pathExists(const int sourceRow,
+                            const int sourceColumn,
+                            const int destinationRow,
+                            const int destinationColumn) const
 {
-    path.push_back(std::make_pair(currentRow, currentColumn));
+    const std::vector <std::pair <int, int>> offsets {{-1, 0}, {0, -1}, {1, 0}, {0, 1}};
 
-    if (destinationRow == currentRow && destinationColumn == currentColumn)
-        return true;
+    std::vector <std::pair <int, int>> visited;
+    visited.reserve(m_tileMap.size() * m_tileMap[0].size());
 
-    static const std::vector <int> rowOffset    {-1, 1,  0, 0};
-    static const std::vector <int> columnOffset { 0, 0, -1, 1};
+    std::queue <std::pair <int, int>> q;
+    q.push(std::make_pair(sourceRow, sourceColumn));
 
-    for (auto i = 0; i < rowOffset.size(); i++)
+    while (q.size() > 0)
     {
-        const int nextRow = rowOffset[i] + currentRow;
-        const int nextColumn = columnOffset[i] + currentColumn;
+        auto p = q.front();
+        q.pop();
 
-        if (nextRow    >= 0 && nextRow    < m_tileMap.size()    &&
-            nextColumn >= 0 && nextColumn < m_tileMap[0].size() &&
-            isTilePassable(nextRow, nextColumn) &&
-            std::find(path.cbegin(), path.cend(), std::make_pair(nextRow, nextColumn)) == path.cend() &&
-            findPath(nextRow, nextColumn, destinationRow, destinationColumn, path))
-        {
+        visited.push_back(p);
+
+        if (p == std::make_pair(destinationRow, destinationColumn))
             return true;
+
+        for (auto i = 0; i < offsets.size(); i++)
+        {
+            const auto nextRow    = p.first  + offsets[i].first;
+            const auto nextColumn = p.second + offsets[i].second;
+            const auto nextTile   = std::make_pair(nextRow, nextColumn);
+
+            if (nextRow    >= 0 && nextRow    < m_tileMap.size()    &&
+                nextColumn >= 0 && nextColumn < m_tileMap[0].size() &&
+                isTilePassable(nextRow, nextColumn) &&
+                std::find(visited.begin(), visited.end(), nextTile) == visited.end())
+            {
+                q.push(nextTile);
+            }
         }
     }
-
-    path.pop_back();
 
     return false;
 }

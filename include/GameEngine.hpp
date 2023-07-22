@@ -6,6 +6,7 @@
 #include "GameState.hpp"
 
 #include <vector>
+#include <queue>
 #include <algorithm>
 
 class GameEngine
@@ -49,7 +50,7 @@ class GameEngine
         void transformExpectedBalls();
 
         bool isTilePassable(const int, const int) const;
-        bool findPath(const int, const int, const int, const int, std::vector <std::pair <int, int>>&) const;
+        bool pathExists(const int, const int, const int, const int) const;
 
         void deleteStreaks(const int, const int, bool);
 

@@ -1,7 +1,5 @@
 #include "UserInterface.hpp"
 
-#include <iostream>
-
 UserInterface::UserInterface(GameEngine& game) :
     m_game(game),
     m_window(sf::VideoMode(ResourceManager::getSpriteSize() * game.getTileMapWidth(),
@@ -21,6 +19,10 @@ UserInterface::UserInterface(GameEngine& game) :
     m_scoreText.setFillColor(m_textColor);
     m_scoreText.setCharacterSize(m_infoPanel.getSize().y);
     m_scoreText.setFont(m_font);
+
+    m_timeText.setFillColor(m_textColor);
+    m_timeText.setCharacterSize(m_infoPanel.getSize().y);
+    m_timeText.setFont(m_font);
 }
 
 UserInterface::~UserInterface()
@@ -31,9 +33,17 @@ UserInterface::~UserInterface()
 void UserInterface::mainLoop()
 {
     const auto spriteSize = ResourceManager::getSpriteSize();
+    auto elapsedSeconds = 0.0f;
 
     while (m_window.isOpen())
     {
+        elapsedSeconds += m_clock.restart().asSeconds();
+        if (elapsedSeconds >= m_maxClockDelayInSeconds)
+        {
+            m_game.increaseTimer();
+            elapsedSeconds = 0.0f;
+        }
+
         sf::Event event;
 
         while (m_window.pollEvent(event))
@@ -76,8 +86,12 @@ void UserInterface::renderInfoPanel()
     auto score = m_game.getScore();
     m_scoreText.setString(std::to_string(score));
     m_scoreText.setPosition(m_window.getSize().x - m_scoreText.getLocalBounds().width, 0);
-
     m_window.draw(m_scoreText);
+
+    auto time = m_game.getTimeInSeconds();
+    m_timeText.setString(std::to_string(time));
+    m_timeText.setPosition(0, 0);
+    m_window.draw(m_timeText);
 }
 
 void UserInterface::renderTileMap()
