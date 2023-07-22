@@ -14,14 +14,16 @@ class GameEngine
         GameEngine();
         virtual ~GameEngine();
 
-        void startNewGame(const int, const int);
+        void startNewGame(const int, const int, const int);
         void processMove(const int, const int);
+        void increaseTimer();
 
         const std::vector <std::vector <Tile>>& getTileMap() const;
         int getScore() const;
-
-        void increaseTimer();
         int getTimeInSeconds() const;
+
+        int getTileMapWidth() const;
+        int getTileMapHeight() const;
 
     private:
         std::vector <std::vector <Tile>> m_tileMap;

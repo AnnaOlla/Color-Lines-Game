@@ -57,4 +57,24 @@ inline Tile operator-(Tile x, Tile y)
     return static_cast <Tile>(static_cast <int>(x) - static_cast <int>(y));
 }
 
+inline Tile expectedToNormal(Tile x)
+{
+    return x - Tile::ColorEnd;
+}
+
+inline Tile normalToExpected(Tile x)
+{
+    return x + Tile::ColorEnd;
+}
+
+inline Tile selectedToNormal(Tile x)
+{
+    return x - Tile::ExpectedColorEnd;
+}
+
+inline Tile normalToSelected(Tile x)
+{
+    return x + Tile::ExpectedColorEnd;
+}
+
 #endif // TILE_HPP
