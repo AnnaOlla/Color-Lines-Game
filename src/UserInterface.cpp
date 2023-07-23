@@ -17,11 +17,11 @@ UserInterface::UserInterface(GameEngine& game) :
     m_infoPanel.setFillColor(sf::Color::Black);
 
     m_scoreText.setFillColor(m_textColor);
-    m_scoreText.setCharacterSize(m_infoPanel.getSize().y);
+    m_scoreText.setCharacterSize(m_infoPanel.getSize().y / 2);
     m_scoreText.setFont(m_font);
 
     m_timeText.setFillColor(m_textColor);
-    m_timeText.setCharacterSize(m_infoPanel.getSize().y);
+    m_timeText.setCharacterSize(m_infoPanel.getSize().y / 2);
     m_timeText.setFont(m_font);
 }
 
@@ -83,14 +83,30 @@ void UserInterface::renderInfoPanel()
 {
     m_window.draw(m_infoPanel);
 
-    auto score = m_game.getScore();
-    m_scoreText.setString(std::to_string(score));
-    m_scoreText.setPosition(m_window.getSize().x - m_scoreText.getLocalBounds().width, 0);
+    const float xMarginInPixels = 10;
+
+    std::ostringstream oss;
+
+    const auto score = m_game.getScore();
+    oss << std::setfill('0') << std::setw(7) << score;
+    m_scoreText.setString(oss.str());
+
+    auto x = m_infoPanel.getSize().x - m_scoreText.getLocalBounds().width - m_scoreText.getLocalBounds().left - xMarginInPixels;
+    auto y = (m_infoPanel.getSize().y - m_scoreText.getLocalBounds().height - m_scoreText.getLocalBounds().top) / 2;
+    m_scoreText.setPosition(x, y);
     m_window.draw(m_scoreText);
 
-    auto time = m_game.getTimeInSeconds();
-    m_timeText.setString(std::to_string(time));
-    m_timeText.setPosition(0, 0);
+    oss.str(std::string());
+
+    const auto seconds = m_game.getTimeInSeconds();
+    oss << seconds / (60 * 60) << ':'
+        << std::setfill('0') << std::setw(2) << (seconds / 60) % 60 << ':'
+        << std::setfill('0') << std::setw(2) << seconds % 60;
+    m_timeText.setString(oss.str());
+
+    x = xMarginInPixels;
+    y = (m_infoPanel.getSize().y - m_timeText.getLocalBounds().height - m_timeText.getLocalBounds().top) / 2;
+    m_timeText.setPosition(x, y);
     m_window.draw(m_timeText);
 }
 

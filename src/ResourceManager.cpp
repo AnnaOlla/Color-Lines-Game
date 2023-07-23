@@ -22,7 +22,7 @@ const std::string ResourceManager::m_directoryName = "resources/";
 
 void ResourceManager::loadFont()
 {
-    auto relativePath = m_directoryName + "Autumn Regular.ttf";
+    auto relativePath = m_directoryName + "DigitalNumbers-Regular.ttf";
 
     auto isLoadSuccessful = m_font.loadFromFile(relativePath);
     if (!isLoadSuccessful)
@@ -36,7 +36,22 @@ void ResourceManager::loadSprite(sf::Texture& texture, sf::Sprite& sprite, const
     if (!isLoadSuccessful)
         throw std::runtime_error("Cannot load file " + relativePath);
 
+    texture.setSmooth(true);
     sprite.setTexture(texture);
+    sprite.setScale(m_spriteSizeInPixels / sprite.getLocalBounds().width,
+                    m_spriteSizeInPixels / sprite.getLocalBounds().height);
+}
+
+void ResourceManager::loadScaledSprite(const sf::Texture& texture, sf::Sprite& sprite, float factor)
+{
+    factor = 1 / factor;
+
+    sprite.setTexture(texture);
+    sprite.setTextureRect(sf::IntRect(sprite.getLocalBounds().width  * (1.0f - factor) / 2,
+                                      sprite.getLocalBounds().height * (1.0f - factor) / 2,
+                                      sprite.getLocalBounds().width  * factor,
+                                      sprite.getLocalBounds().height * factor));
+
     sprite.setScale(m_spriteSizeInPixels / sprite.getLocalBounds().width,
                     m_spriteSizeInPixels / sprite.getLocalBounds().height);
 }
@@ -47,16 +62,11 @@ void ResourceManager::loadSprites()
 
     for (auto tile = Tile::ColorOne; tile < Tile::ColorEnd; tile++)
     {
-        std::string fileName;
-
-        fileName = m_directoryName + "ball_" + std::to_string(static_cast <int>(tile)) + ".png";
+        auto fileName = m_directoryName + "ball_" + std::to_string(static_cast <int>(tile)) + ".png";
         loadSprite(m_ballTextures[tile], m_ballSprites[tile], fileName);
 
-        fileName = m_directoryName + "expected_ball_" + std::to_string(static_cast <int>(tile)) + ".png";
-        loadSprite(m_ballTextures[normalToExpected(tile)], m_ballSprites[normalToExpected(tile)], fileName);
-
-        fileName = m_directoryName + "selected_ball_" + std::to_string(static_cast <int>(tile)) + ".png";
-        loadSprite(m_ballTextures[normalToSelected(tile)], m_ballSprites[normalToSelected(tile)], fileName);
+        loadScaledSprite(m_ballTextures[tile], m_ballSprites[normalToExpected(tile)], 0.5f);
+        loadScaledSprite(m_ballTextures[tile], m_ballSprites[normalToSelected(tile)], 1.5f);
     }
 }
 

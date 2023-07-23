@@ -26,6 +26,7 @@ class ResourceManager
         ~ResourceManager();
 
         static void loadSprite(sf::Texture&, sf::Sprite&, const std::string&);
+        static void loadScaledSprite(const sf::Texture&, sf::Sprite&, const float);
 
         static sf::Font m_font;
         static sf::Texture m_cellTexture;

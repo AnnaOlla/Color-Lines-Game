@@ -6,6 +6,9 @@
 
 #include <SFML/Graphics.hpp>
 
+#include <sstream>
+#include <iomanip>
+
 class UserInterface
 {
     public:

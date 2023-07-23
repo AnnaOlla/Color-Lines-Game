@@ -118,7 +118,7 @@ void GameEngine::addExpectedBalls(const int maxCount)
 
     for (auto i = 0; i < count; )
     {
-        auto index = random.getInteger(0, emptyTiles.size());
+        auto index = m_random.getInteger(0, emptyTiles.size());
 
         auto row = emptyTiles[index].first;
         auto column = emptyTiles[index].second;
@@ -126,7 +126,7 @@ void GameEngine::addExpectedBalls(const int maxCount)
         if (m_tileMap[row][column] != Tile::Empty)
             continue;
 
-        m_tileMap[row][column] = random.getTile(Tile::ExpectedColorOne,
+        m_tileMap[row][column] = m_random.getTile(Tile::ExpectedColorOne,
                                                 Tile::ExpectedColorOne + static_cast <Tile>(m_colorCount));
         i++;
     }

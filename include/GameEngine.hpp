@@ -38,7 +38,7 @@ class GameEngine
         int m_colorCount;
         int m_minStreakLength;
 
-        RandomNumberGenerator random;
+        RandomNumberGenerator m_random;
 
         const int m_newBallCountOnMove = 3;
 
