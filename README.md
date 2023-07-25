@@ -18,4 +18,5 @@ Another copy of the famous game written in C++ with SFML.
 
 ## Credits
 * Sprites have been made by me.
+* SFML library has been used.
 * Font has been taken from here: https://github.com/s-a/digital-numbers-font.
