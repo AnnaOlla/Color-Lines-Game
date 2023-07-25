@@ -3,7 +3,6 @@
 
 #include "Tile.hpp"
 #include "RandomNumberGenerator.hpp"
-#include "GameState.hpp"
 
 #include <vector>
 #include <queue>
@@ -28,6 +27,13 @@ class GameEngine
         int getTileMapHeight() const;
 
     private:
+        enum class GameState
+        {
+            FirstPick,
+            SecondPick,
+            GameOver
+        };
+
         std::vector <std::vector <Tile>> m_tileMap;
         std::pair <int, int> m_selection;
         GameState m_state;

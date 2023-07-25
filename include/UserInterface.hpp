@@ -16,7 +16,6 @@ class UserInterface
         virtual ~UserInterface();
 
         void startMainLoop();
-        void processClick();
         void renderGame();
 
     private:
@@ -35,6 +34,9 @@ class UserInterface
         sf::Text m_timeText;
         sf::RectangleShape m_gameOverPanel;
         sf::Text m_gameOverText;
+
+        void processTimer();
+        void processClick();
 
         void renderInfoPanel();
         void renderTileMap();

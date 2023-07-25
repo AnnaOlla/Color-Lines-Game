@@ -1,8 +1,12 @@
 #ifndef TILE_HPP
 #define TILE_HPP
 
-#include <string>
-#include <stdexcept>
+/*
+All the tilemap has three types of balls:
+1. usual balls;
+2. those that appear on the next move (sort of a hint);
+3. those that the player selects
+*/
 
 enum class Tile
 {

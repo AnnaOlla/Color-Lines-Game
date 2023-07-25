@@ -31,8 +31,15 @@ void GameEngine::startNewGame(const int widthInTiles, const int heightInTiles, c
     addExpectedBalls(m_newBallCountOnMove);
 }
 
+/*
+ * The entry point for making moves
+ */
 void GameEngine::processPick(const int row, const int column)
 {
+    // We always keep the game state in mind
+    // to process different game situations differently
+    // in a way easy to understand
+
     switch (m_state)
     {
         case GameState::FirstPick:
@@ -47,12 +54,14 @@ void GameEngine::processPick(const int row, const int column)
 
         case GameState::SecondPick:
         {
+            // Deselect if player chooses the same ball
             if (m_selection == std::make_pair(row, column))
             {
                 deselectTile();
                 m_state = GameState::FirstPick;
             }
 
+            // Process move if player selects a free cell
             else if (isTilePassable(m_tileMap[row][column]))
             {
                 if (!pathExists(m_selection.first, m_selection.second, row, column))
@@ -81,6 +90,7 @@ void GameEngine::processPick(const int row, const int column)
                 }
             }
 
+            // Select another ball if player selects it
             else
             {
                 deselectTile();
@@ -119,8 +129,18 @@ void GameEngine::swapSelectedWith(const int rowNew, const int columnNew)
     m_selection = std::make_pair(rowNew, columnNew);
 }
 
+/*
+ * The count of free cells can be less than the required number of balls
+ * So, it adds balls as maximum as possible
+ * Returns the number of added balls
+ */
 int GameEngine::addExpectedBalls(const int maxCount)
 {
+    /* We create a vector of coordinates of empty cells
+     * to randomly choose a pair of coordinates
+     * to place a ball in the randomly selected cell
+     */
+
     std::vector <std::pair <int, int>> emptyTiles;
     emptyTiles.reserve(m_tileMap.size() * m_tileMap[0].size());
 
@@ -142,6 +162,7 @@ int GameEngine::addExpectedBalls(const int maxCount)
         auto row = emptyTiles[index].first;
         auto column = emptyTiles[index].second;
 
+        // We do not delete cells that we have filled, so there's a workaround
         if (m_tileMap[row][column] != Tile::Empty)
             continue;
 
@@ -153,6 +174,11 @@ int GameEngine::addExpectedBalls(const int maxCount)
     return countAdded;
 }
 
+/*
+ * Transforms balls to real ones
+ * deletes groups if they appear
+ * and gives scores (but not an additional move)
+ */
 void GameEngine::transformExpectedBalls()
 {
     for (auto row = 0; row < m_tileMap.size(); row++)
@@ -175,6 +201,10 @@ bool GameEngine::isTilePassable(const Tile t) const
     return (t == Tile::Empty || isExpected(t));
 }
 
+/*
+ * Uses BFS to find if a path between to cells exists
+ * Does not count diagonal moves, only horizontal and vertical
+ */
 bool GameEngine::pathExists(const int sourceRow,
                             const int sourceColumn,
                             const int destinationRow,
@@ -217,8 +247,17 @@ bool GameEngine::pathExists(const int sourceRow,
     return false;
 }
 
+/*
+ * Finds all possible streaks for a ball and deletes them
+ * Returns earned amount of points
+ */
 int GameEngine::deleteStreaks(const int row, const int column)
 {
+    // We check all possible directions,
+    // then we delete only adjacent balls if combinations are found.
+    // We delete the selected ball only after we delete balls in all directions
+    // so that we do not lose a situation when the ball makes several lines
+
     auto totalStreakLength = 0;
 
     if (isHorizontalStreak(row, column))
@@ -244,6 +283,7 @@ int GameEngine::deleteStreaks(const int row, const int column)
 
 void GameEngine::increaseScore(const int streakLength)
 {
+    // The more length is, the more points for each ball are given
     m_score += streakLength * (streakLength - m_minStreakLength + 1);
 }
 
