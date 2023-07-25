@@ -1,7 +1,7 @@
 # Color Lines
 Another copy of the famous game written in C++ with SFML.
 
-## Rules:
+## Rules
 * Move balls from cell to cell, group balls of the same color horizontally, vertically, and diagonally;
 * The more balls are combined, the more scores you earn;
 * Each move drops 3 new balls if you do not make a line of 5 balls;
