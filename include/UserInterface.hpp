@@ -12,15 +12,16 @@
 class UserInterface
 {
     public:
-        UserInterface(GameEngine&);
+        UserInterface(GameEngine&, const ResourceManager&);
         virtual ~UserInterface();
 
-        void mainLoop();
+        void startMainLoop();
         void processClick();
         void renderGame();
 
     private:
         GameEngine& m_game;
+        const ResourceManager& m_resourceManager;
 
         sf::RenderWindow m_window;
 
@@ -32,9 +33,12 @@ class UserInterface
         sf::Font m_font;
         sf::Text m_scoreText;
         sf::Text m_timeText;
+        sf::RectangleShape m_gameOverPanel;
+        sf::Text m_gameOverText;
 
-        void renderTileMap();
         void renderInfoPanel();
+        void renderTileMap();
+        void renderGameOverPanel();
 };
 
 #endif // USERINTERFACE_HPP

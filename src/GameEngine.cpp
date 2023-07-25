@@ -1,6 +1,6 @@
 #include "GameEngine.hpp"
 
-GameEngine::GameEngine()
+GameEngine::GameEngine() : m_newBallCountOnMove(3)
 {
     //ctor
 }
@@ -12,57 +12,93 @@ GameEngine::~GameEngine()
 
 void GameEngine::startNewGame(const int widthInTiles, const int heightInTiles, const int colorCount)
 {
-    m_tileMap.resize(heightInTiles, std::vector <Tile>(widthInTiles));
+    m_tileMap.resize(heightInTiles, std::vector <Tile>(widthInTiles, Tile::Empty));
     for (auto& row : m_tileMap)
         std::fill(row.begin(), row.end(), Tile::Empty);
 
     m_selection = std::make_pair(-1, -1);
+    m_state = GameState::FirstPick;
+
+    m_isAdditionalMoveAvailable = false;
+    m_timeElapsedInSeconds = 0;
+    m_score = 0;
+
     m_colorCount = colorCount;
     m_minStreakLength = (widthInTiles < heightInTiles) ? (widthInTiles - 4) : (heightInTiles - 4);
-    m_state = GameState::FirstPick;
 
     addExpectedBalls(m_newBallCountOnMove);
     transformExpectedBalls();
     addExpectedBalls(m_newBallCountOnMove);
 }
 
-void GameEngine::processMove(const int row, const int column)
+void GameEngine::processPick(const int row, const int column)
 {
     switch (m_state)
     {
-    case GameState::FirstPick:
-        selectTile(row, column);
-        break;
+        case GameState::FirstPick:
+        {
+            if (!isBall(m_tileMap[row][column]))
+                break;
 
-    case GameState::SecondPick:
-        if (m_selection == std::make_pair(row, column))
-        {
-            deselectTile();
-        }
-        else if (isTilePassable(row, column))
-        {
-            moveSelectedToTile(row, column);
-        }
-        else
-        {
-            deselectTile();
             selectTile(row, column);
+            m_state = GameState::SecondPick;
+            break;
         }
-        break;
 
-    default:
-        break;
+        case GameState::SecondPick:
+        {
+            if (m_selection == std::make_pair(row, column))
+            {
+                deselectTile();
+                m_state = GameState::FirstPick;
+            }
+
+            else if (isTilePassable(m_tileMap[row][column]))
+            {
+                if (!pathExists(m_selection.first, m_selection.second, row, column))
+                    break;
+
+                swapSelectedWith(row, column);
+                deselectTile();
+                m_state = GameState::FirstPick;
+
+                m_isAdditionalMoveAvailable = false;
+                auto score = deleteStreaks(row, column);
+
+                if (score > 0)
+                {
+                    increaseScore(score);
+                    m_isAdditionalMoveAvailable = true;
+                }
+
+                if (!m_isAdditionalMoveAvailable)
+                {
+                    transformExpectedBalls();
+                    auto ballsAdded = addExpectedBalls(m_newBallCountOnMove);
+
+                    if (ballsAdded == 0)
+                        m_state = GameState::GameOver;
+                }
+            }
+
+            else
+            {
+                deselectTile();
+                selectTile(row, column);
+            }
+
+            break;
+        }
+
+        default:
+            break;
     }
 }
 
 void GameEngine::selectTile(const int row, const int column)
 {
-    if (m_tileMap[row][column] < Tile::ColorOne || m_tileMap[row][column] >= Tile::ColorEnd)
-        return;
-
-    m_tileMap[row][column] = m_tileMap[row][column] + Tile::ExpectedColorEnd;
+    m_tileMap[row][column] = normalToSelected(m_tileMap[row][column]);
     m_selection = std::make_pair(row, column);
-    m_state = GameState::SecondPick;
 }
 
 void GameEngine::deselectTile()
@@ -70,37 +106,20 @@ void GameEngine::deselectTile()
     auto row = m_selection.first;
     auto column = m_selection.second;
 
-    if (row == -1 || column == -1)
-        return;
-
-    m_tileMap[row][column] = m_tileMap[row][column] - Tile::ExpectedColorEnd;
+    m_tileMap[row][column] = selectedToNormal(m_tileMap[row][column]);
     m_selection = std::make_pair(-1, -1);
-    m_state = GameState::FirstPick;
 }
 
-void GameEngine::moveSelectedToTile(const int rowNew, const int columnNew)
+void GameEngine::swapSelectedWith(const int rowNew, const int columnNew)
 {
     auto rowOld = m_selection.first;
     auto columnOld = m_selection.second;
 
-    if (!pathExists(m_selection.first, m_selection.second, rowNew, columnNew))
-        return;
-
     std::swap(m_tileMap[rowNew][columnNew], m_tileMap[rowOld][columnOld]);
     m_selection = std::make_pair(rowNew, columnNew);
-    deselectTile();
-
-    m_isAdditionalMoveAvailable = false;
-    deleteStreaks(rowNew, columnNew, true);
-
-    if (!m_isAdditionalMoveAvailable)
-    {
-        transformExpectedBalls();
-        addExpectedBalls(m_newBallCountOnMove);
-    }
 }
 
-void GameEngine::addExpectedBalls(const int maxCount)
+int GameEngine::addExpectedBalls(const int maxCount)
 {
     std::vector <std::pair <int, int>> emptyTiles;
     emptyTiles.reserve(m_tileMap.size() * m_tileMap[0].size());
@@ -114,9 +133,9 @@ void GameEngine::addExpectedBalls(const int maxCount)
         }
     }
 
-    const int count = (maxCount > static_cast <int>(emptyTiles.size())) ? static_cast <int>(emptyTiles.size()) : maxCount;
+    const int countAdded = (maxCount > static_cast <int>(emptyTiles.size())) ? static_cast <int>(emptyTiles.size()) : maxCount;
 
-    for (auto i = 0; i < count; )
+    for (auto i = 0; i < countAdded; )
     {
         auto index = m_random.getInteger(0, emptyTiles.size());
 
@@ -127,9 +146,11 @@ void GameEngine::addExpectedBalls(const int maxCount)
             continue;
 
         m_tileMap[row][column] = m_random.getTile(Tile::ExpectedColorOne,
-                                                Tile::ExpectedColorOne + static_cast <Tile>(m_colorCount));
+                                                  Tile::ExpectedColorOne + static_cast <Tile>(m_colorCount));
         i++;
     }
+
+    return countAdded;
 }
 
 void GameEngine::transformExpectedBalls()
@@ -138,19 +159,20 @@ void GameEngine::transformExpectedBalls()
     {
         for (auto column = 0; column < m_tileMap.size(); column++)
         {
-            if (m_tileMap[row][column] >= Tile::ExpectedColorOne && m_tileMap[row][column] < Tile::ExpectedColorEnd)
+            if (isExpected(m_tileMap[row][column]))
             {
                 m_tileMap[row][column] = expectedToNormal(m_tileMap[row][column]);
-                deleteStreaks(row, column, false);
+
+                auto score = deleteStreaks(row, column);
+                increaseScore(score);
             }
         }
     }
 }
 
-bool GameEngine::isTilePassable(const int row, const int column) const
+bool GameEngine::isTilePassable(const Tile t) const
 {
-    const auto t = m_tileMap[row][column];
-    return (t == Tile::Empty || (t >= Tile::ExpectedColorOne && t < Tile::ExpectedColorEnd));
+    return (t == Tile::Empty || isExpected(t));
 }
 
 bool GameEngine::pathExists(const int sourceRow,
@@ -184,7 +206,7 @@ bool GameEngine::pathExists(const int sourceRow,
 
             if (nextRow    >= 0 && nextRow    < m_tileMap.size()    &&
                 nextColumn >= 0 && nextColumn < m_tileMap[0].size() &&
-                isTilePassable(nextRow, nextColumn) &&
+                isTilePassable(m_tileMap[nextRow][nextColumn]) &&
                 std::find(visited.begin(), visited.end(), nextTile) == visited.end())
             {
                 q.push(nextTile);
@@ -195,7 +217,7 @@ bool GameEngine::pathExists(const int sourceRow,
     return false;
 }
 
-void GameEngine::deleteStreaks(const int row, const int column, const bool playerActed)
+int GameEngine::deleteStreaks(const int row, const int column)
 {
     auto totalStreakLength = 0;
 
@@ -212,15 +234,17 @@ void GameEngine::deleteStreaks(const int row, const int column, const bool playe
         totalStreakLength += deleteAdjacentAntiDiagonalStreak(row, column);
 
     if (totalStreakLength == 0)
-        return;
+        return totalStreakLength;
 
     m_tileMap[row][column] = Tile::Empty;
     totalStreakLength++;
 
-    increaseScore(totalStreakLength);
+    return totalStreakLength;
+}
 
-    if (playerActed)
-        m_isAdditionalMoveAvailable = true;
+void GameEngine::increaseScore(const int streakLength)
+{
+    m_score += streakLength * (streakLength - m_minStreakLength + 1);
 }
 
 bool GameEngine::isHorizontalStreak(const int row, const int column) const
@@ -439,9 +463,9 @@ int GameEngine::deleteAdjacentAntiDiagonalStreak(const int row, const int column
     return streakLength;
 }
 
-void GameEngine::increaseScore(const int streakLength)
+bool GameEngine::isGameOver() const
 {
-    m_score += streakLength * (streakLength - m_minStreakLength + 1);
+    return (m_state == GameState::GameOver);
 }
 
 const std::vector <std::vector <Tile>>& GameEngine::getTileMap() const
@@ -472,4 +496,9 @@ int GameEngine::getTileMapWidth() const
 int GameEngine::getTileMapHeight() const
 {
     return m_tileMap.size();
+}
+
+int GameEngine::getColorCount() const
+{
+    return m_colorCount;
 }

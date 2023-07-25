@@ -13,30 +13,30 @@
 class ResourceManager
 {
     public:
-        static void loadFont();
-        static void loadSprites();
-
-        static sf::Sprite getBallSprite(const Tile);
-        static sf::Sprite getCellSprite();
-        static int getSpriteSize();
-        static sf::Font getFont();
-
-    private:
         ResourceManager();
         ~ResourceManager();
 
-        static void loadSprite(sf::Texture&, sf::Sprite&, const std::string&);
-        static void loadScaledSprite(const sf::Texture&, sf::Sprite&, const float);
+        void loadFont();
+        void loadSprites();
 
-        static sf::Font m_font;
-        static sf::Texture m_cellTexture;
-        static sf::Sprite m_cellSprite;
+        sf::Sprite getBallSprite(const Tile) const;
+        sf::Sprite getCellSprite() const;
+        int getSpriteSize() const;
+        sf::Font getFont() const;
 
-        static std::map <Tile, sf::Texture> m_ballTextures;
-        static std::map <Tile, sf::Sprite> m_ballSprites;
+    private:
+        void loadSprite(sf::Texture&, sf::Sprite&, const std::string&);
+        void loadScaledSprite(const sf::Texture&, sf::Sprite&, const float);
 
-        static const std::string m_directoryName;
-        static const int m_spriteSizeInPixels;
+        sf::Font m_font;
+        sf::Texture m_cellTexture;
+        sf::Sprite m_cellSprite;
+
+        std::map <Tile, sf::Texture> m_ballTextures;
+        std::map <Tile, sf::Sprite> m_ballSprites;
+
+        const int m_spriteSizeInPixels;
+        const std::string m_directoryName;
 };
 
 #endif // RESOURCEMANAGER_HPP

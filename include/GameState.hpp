@@ -5,6 +5,7 @@ enum class GameState
 {
     FirstPick,
     SecondPick,
+    GameOver,
     Count
 };
 

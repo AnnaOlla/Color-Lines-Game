@@ -4,14 +4,15 @@
 
 int main()
 {
-    ResourceManager::loadSprites();
-    ResourceManager::loadFont();
+    ResourceManager resourceManager;
+    resourceManager.loadSprites();
+    resourceManager.loadFont();
 
     GameEngine game;
     game.startNewGame(9, 9, 8);
 
-    UserInterface ui(game);
-    ui.mainLoop();
+    UserInterface ui(game, resourceManager);
+    ui.startMainLoop();
 
     return 0;
 }

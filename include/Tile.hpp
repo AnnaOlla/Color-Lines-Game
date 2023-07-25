@@ -77,4 +77,19 @@ inline Tile normalToSelected(Tile x)
     return x + Tile::ExpectedColorEnd;
 }
 
+inline bool isBall(Tile x)
+{
+    return (x >= Tile::ColorOne && x < Tile::ColorEnd);
+}
+
+inline bool isExpected(Tile x)
+{
+    return (x >= Tile::ExpectedColorOne && x < Tile::ExpectedColorEnd);
+}
+
+inline bool isSelected(Tile x)
+{
+    return (x >= Tile::SelectedColorOne && x < Tile::SelectedColorEnd);
+}
+
 #endif // TILE_HPP

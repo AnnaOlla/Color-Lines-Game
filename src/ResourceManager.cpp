@@ -1,6 +1,6 @@
 #include "ResourceManager.hpp"
 
-ResourceManager::ResourceManager()
+ResourceManager::ResourceManager() : m_spriteSizeInPixels(64), m_directoryName("resources/")
 {
     //ctor
 }
@@ -9,16 +9,6 @@ ResourceManager::~ResourceManager()
 {
     //dtor
 }
-
-sf::Font ResourceManager::m_font;
-sf::Texture ResourceManager::m_cellTexture;
-sf::Sprite ResourceManager::m_cellSprite;
-
-std::map <Tile, sf::Texture> ResourceManager::m_ballTextures;
-std::map <Tile, sf::Sprite> ResourceManager::m_ballSprites;
-
-const int ResourceManager::m_spriteSizeInPixels = 64;
-const std::string ResourceManager::m_directoryName = "resources/";
 
 void ResourceManager::loadFont()
 {
@@ -70,22 +60,22 @@ void ResourceManager::loadSprites()
     }
 }
 
-sf::Sprite ResourceManager::getBallSprite(const Tile tile)
+sf::Sprite ResourceManager::getBallSprite(const Tile tile) const
 {
     return m_ballSprites.at(tile);
 }
 
-sf::Sprite ResourceManager::getCellSprite()
+sf::Sprite ResourceManager::getCellSprite() const
 {
     return m_cellSprite;
 }
 
-int ResourceManager::getSpriteSize()
+int ResourceManager::getSpriteSize() const
 {
     return m_spriteSizeInPixels;
 }
 
-sf::Font ResourceManager::getFont()
+sf::Font ResourceManager::getFont() const
 {
     return m_font;
 }

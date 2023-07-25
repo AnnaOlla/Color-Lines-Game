@@ -1,15 +1,16 @@
 #include "UserInterface.hpp"
 
-UserInterface::UserInterface(GameEngine& game) :
+UserInterface::UserInterface(GameEngine& game, const ResourceManager& resourceManager) :
     m_game(game),
-    m_window(sf::VideoMode(ResourceManager::getSpriteSize() * game.getTileMapWidth(),
-                           ResourceManager::getSpriteSize() * (game.getTileMapHeight() + 1)),
+    m_resourceManager(resourceManager),
+    m_window(sf::VideoMode(resourceManager.getSpriteSize() * game.getTileMapWidth(),
+                           resourceManager.getSpriteSize() * (game.getTileMapHeight() + 1)),
              "Lines",
              sf::Style::Close),
-    m_infoPanel(sf::Vector2f(ResourceManager::getSpriteSize() * game.getTileMapWidth(),
-                             ResourceManager::getSpriteSize())),
+    m_infoPanel(sf::Vector2f(m_resourceManager.getSpriteSize() * game.getTileMapWidth(),
+                             m_resourceManager.getSpriteSize())),
     m_textColor(0x35, 0xC5, 0xFF),
-    m_font(ResourceManager::getFont())
+    m_font(m_resourceManager.getFont())
 {
     m_window.setFramerateLimit(30);
     m_window.setVerticalSyncEnabled(true);
@@ -23,6 +24,13 @@ UserInterface::UserInterface(GameEngine& game) :
     m_timeText.setFillColor(m_textColor);
     m_timeText.setCharacterSize(m_infoPanel.getSize().y / 2);
     m_timeText.setFont(m_font);
+
+    m_gameOverPanel.setFillColor(sf::Color(0, 0, 0, 192));
+
+    m_gameOverText.setFillColor(m_textColor);
+    m_gameOverText.setCharacterSize(m_infoPanel.getSize().y / 2);
+    m_gameOverText.setFont(m_font);
+    m_gameOverText.setString("GAME OVER");
 }
 
 UserInterface::~UserInterface()
@@ -30,15 +38,15 @@ UserInterface::~UserInterface()
     //dtor
 }
 
-void UserInterface::mainLoop()
+void UserInterface::startMainLoop()
 {
-    const auto spriteSize = ResourceManager::getSpriteSize();
+    const auto spriteSize = m_resourceManager.getSpriteSize();
     auto elapsedSeconds = 0.0f;
 
     while (m_window.isOpen())
     {
         elapsedSeconds += m_clock.restart().asSeconds();
-        if (elapsedSeconds >= m_maxClockDelayInSeconds)
+        if (elapsedSeconds >= m_maxClockDelayInSeconds && !m_game.isGameOver())
         {
             m_game.increaseTimer();
             elapsedSeconds = 0.0f;
@@ -52,12 +60,16 @@ void UserInterface::mainLoop()
             {
                 auto position = sf::Mouse::getPosition(m_window);
 
-                if (position.y > m_infoPanel.getSize().y)
+                if (!m_game.isGameOver() && position.y >= m_infoPanel.getLocalBounds().height + m_infoPanel.getLocalBounds().top)
                 {
                     auto row = (position.y - m_infoPanel.getSize().y) / spriteSize;
                     auto column = position.x / spriteSize;
 
-                    m_game.processMove(row, column);
+                    m_game.processPick(row, column);
+                }
+                else
+                {
+                    m_game.startNewGame(m_game.getTileMapWidth(), m_game.getTileMapHeight(), m_game.getColorCount());
                 }
             }
 
@@ -75,6 +87,9 @@ void UserInterface::renderGame()
 
     renderInfoPanel();
     renderTileMap();
+
+    if (m_game.isGameOver())
+        renderGameOverPanel();
 
     m_window.display();
 }
@@ -113,7 +128,9 @@ void UserInterface::renderInfoPanel()
 void UserInterface::renderTileMap()
 {
     const auto tileMap = m_game.getTileMap();
-    const auto spriteSize = ResourceManager::getSpriteSize();
+    const auto spriteSize = m_resourceManager.getSpriteSize();
+
+    auto cellSprite = m_resourceManager.getCellSprite();
 
     for (size_t i = 0; i < tileMap.size(); i++)
     {
@@ -121,16 +138,34 @@ void UserInterface::renderTileMap()
         {
             sf::Vector2f position(j * spriteSize, i * spriteSize + m_infoPanel.getSize().y);
 
-            auto cellSprite = ResourceManager::getCellSprite();
             cellSprite.setPosition(position);
             m_window.draw(cellSprite);
 
             if (tileMap[i][j] == Tile::Empty)
                 continue;
 
-            auto ballSprite = ResourceManager::getBallSprite(tileMap[i][j]);
+            auto ballSprite = m_resourceManager.getBallSprite(tileMap[i][j]);
             ballSprite.setPosition(position);
             m_window.draw(ballSprite);
         }
     }
+}
+
+void UserInterface::renderGameOverPanel()
+{
+    const auto left = m_infoPanel.getLocalBounds().left;
+    const auto width = m_infoPanel.getLocalBounds().width;
+
+    const auto top = m_infoPanel.getLocalBounds().top + m_infoPanel.getLocalBounds().height;
+    const auto height = m_window.getSize().y - top;
+
+    m_gameOverPanel.setPosition(left, top);
+    m_gameOverPanel.setSize(sf::Vector2f(width, height));
+    m_window.draw(m_gameOverPanel);
+
+    const auto x = (width + left - m_gameOverText.getLocalBounds().left - m_gameOverText.getLocalBounds().width) / 2;
+    const auto y = (height + top - m_gameOverText.getLocalBounds().top - m_gameOverText.getLocalBounds().height) / 2;
+
+    m_gameOverText.setPosition(x, y);
+    m_window.draw(m_gameOverText);
 }
