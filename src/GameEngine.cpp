@@ -530,7 +530,7 @@ int GameEngine::getTimeInSeconds() const
 
 int GameEngine::getTileMapWidth() const
 {
-    return m_tileMap[0].size();
+    return m_tileMap.at(0).size();
 }
 
 int GameEngine::getTileMapHeight() const
@@ -541,4 +541,9 @@ int GameEngine::getTileMapHeight() const
 int GameEngine::getColorCount() const
 {
     return m_colorCount;
+}
+
+int GameEngine::getState() const
+{
+    return static_cast <int>(m_state);
 }

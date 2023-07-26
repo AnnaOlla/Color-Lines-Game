@@ -25,6 +25,7 @@ class GameEngine
         int getColorCount() const;
         int getTileMapWidth() const;
         int getTileMapHeight() const;
+        int getState() const;
 
     private:
         enum class GameState

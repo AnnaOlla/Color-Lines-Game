@@ -25,7 +25,8 @@ class UserInterface
         sf::RenderWindow m_window;
 
         sf::Clock m_clock;
-        const float m_maxClockDelayInSeconds = 1.0f;
+        float m_elapsedSeconds;
+        const float m_maxClockDelayInSeconds;
 
         sf::RectangleShape m_infoPanel;
         sf::Color m_textColor;

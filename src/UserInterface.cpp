@@ -7,6 +7,8 @@ UserInterface::UserInterface(GameEngine& game, const ResourceManager& resourceMa
                            resourceManager.getSpriteSize() * (game.getTileMapHeight() + 1)),
              "Lines",
              sf::Style::Close),
+    m_elapsedSeconds(0.0f),
+    m_maxClockDelayInSeconds(1.0f),
     m_infoPanel(sf::Vector2f(m_resourceManager.getSpriteSize() * game.getTileMapWidth(),
                              m_resourceManager.getSpriteSize())),
     m_textColor(0x35, 0xC5, 0xFF),
@@ -60,14 +62,12 @@ void UserInterface::startMainLoop()
 
 void UserInterface::processTimer()
 {
-    static float elapsedSeconds = 0.0f;
+    m_elapsedSeconds += m_clock.restart().asSeconds();
 
-    elapsedSeconds += m_clock.restart().asSeconds();
-
-    if (elapsedSeconds >= m_maxClockDelayInSeconds && !m_game.isGameOver())
+    if (m_elapsedSeconds >= m_maxClockDelayInSeconds && !m_game.isGameOver())
     {
         m_game.increaseTimer();
-        elapsedSeconds = 0.0f;
+        m_elapsedSeconds = 0.0f;
     }
 }
 
@@ -77,6 +77,9 @@ void UserInterface::processClick()
     const auto tileMapTop = m_infoPanel.getLocalBounds().height + m_infoPanel.getLocalBounds().top;
     const auto spriteSize = m_resourceManager.getSpriteSize();
 
+    // We process click by calculating selected row and column except for:
+    // 1. When the game is over, so we just restart it after clicking anywhere
+    // 2. When clicked at the top panel
     if (!m_game.isGameOver() && position.y >= tileMapTop)
     {
         const auto row = (position.y - tileMapTop) / spriteSize;
@@ -87,6 +90,9 @@ void UserInterface::processClick()
     else
     {
         m_game.startNewGame(m_game.getTileMapWidth(), m_game.getTileMapHeight(), m_game.getColorCount());
+
+        m_elapsedSeconds = 0.0f;
+        m_clock.restart();
     }
 }
 
